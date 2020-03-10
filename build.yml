@@ -13,6 +13,8 @@ parameters:
   default: 0
 
 steps:
+- bash: echo "##vso[build.updatebuildnumber]$(Major).$(Minor).$(Build).$(Revision)"
+  displayName: update build number
 - task: DownloadSecureFile@1
   name: privateKey
   displayName: GetPrivateKey
