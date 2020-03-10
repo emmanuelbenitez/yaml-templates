@@ -24,7 +24,7 @@ jobs:
       name: privateKey
       displayName: GetPrivateKey
       inputs:
-        secureFile: 'BigSolution.snk'
+        secureFile: 'be.stateless.snk'
 
     - task: DotNetCoreCLI@2
       displayName: Restore
