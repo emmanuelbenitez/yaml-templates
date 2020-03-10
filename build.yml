@@ -13,8 +13,9 @@ parameters:
   default: 0
 
 steps:
-- bash: echo "##vso[build.updatebuildnumber]$(Major).$(Minor).$(Build).$(Revision)"
-  displayName: update build number
+- bash:  | 
+    echo "##vso[build.updatebuildnumber]$(Major).$(Minor).$(Build).$(Revision)"
+  displayName: Update build number
 - task: DownloadSecureFile@1
   name: privateKey
   displayName: GetPrivateKey
@@ -33,13 +34,13 @@ steps:
   displayName: dotnet build (Debug)
   inputs:
     command: 'build'
-    arguments: '-p:Configuration=Debug;Major=$(Major);Minor=$(Minor);Build=$($Version.Build);Revision=$($version.Revision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
+    arguments: '-p:Configuration=Debug;Major=$(Major);Minor=$(Minor);Build=0;Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
 - task: DotNetCoreCLI@2
   displayName: dotnet build (Release)
   inputs:
     command: 'build'
-    arguments: '-p:Configuration=Release;Major=$(Major);Minor=$(Minor);Build=$($Version.Build);Revision=$($version.Revision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
+    arguments: '-p:Configuration=Release;Major=$(Major);Minor=$(Minor);Build=0;Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
 
 # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
 - task: DotNetCoreCLI@2
