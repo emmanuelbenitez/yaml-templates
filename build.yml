@@ -12,74 +12,78 @@ parameters:
   type: number
   default: 0
 
-steps:
-- bash:  | 
-    echo "##vso[build.updatebuildnumber]${{ parameters.Major }}.${{ parameters.Minor }}.${{ parameters.Build }}.$(Build.BuildId)"
-  displayName: Update build number
-- task: DownloadSecureFile@1
-  name: privateKey
-  displayName: GetPrivateKey
-  inputs:
-    secureFile: 'BigSolution.snk'
+jobs:
+- job: Windows
+  pool:
+    vmImage: 'windows-latest'
+  steps:
+    - bash:  | 
+        echo "##vso[build.updatebuildnumber]${{ parameters.Major }}.${{ parameters.Minor }}.${{ parameters.Build }}.$(Build.BuildId)"
+      displayName: Update build number
+    - task: DownloadSecureFile@1
+      name: privateKey
+      displayName: GetPrivateKey
+      inputs:
+        secureFile: 'BigSolution.snk'
 
-- task: DotNetCoreCLI@2
-  displayName: Restore
-  inputs:
-    command: 'restore'
-    feedsToUse: 'select'
-    vstsFeed: '1b04fa51-ab33-4e2a-9966-fc900bcff434'
-    includeNuGetOrg: true
+    - task: DotNetCoreCLI@2
+      displayName: Restore
+      inputs:
+        command: 'restore'
+        feedsToUse: 'select'
+        vstsFeed: '1b04fa51-ab33-4e2a-9966-fc900bcff434'
+        includeNuGetOrg: true
 
-- task: DotNetCoreCLI@2
-  displayName: dotnet build (Debug)
-  inputs:
-    command: 'build'
-    arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=${{ parameters.Build }};Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
+    - task: DotNetCoreCLI@2
+      displayName: dotnet build (Debug)
+      inputs:
+        command: 'build'
+        arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=${{ parameters.Build }};Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
-- task: DotNetCoreCLI@2
-  displayName: dotnet build (Release)
-  inputs:
-    command: 'build'
-    arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=${{ parameters.Build }};Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
+    - task: DotNetCoreCLI@2
+      displayName: dotnet build (Release)
+      inputs:
+        command: 'build'
+        arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=${{ parameters.Build }};Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
 
-# Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
-- task: DotNetCoreCLI@2
-  displayName: dotnet test (Release)
-  inputs:
-    command: test
-    arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/tests/'
-    projects: '**/*.Tests.csproj'
-    nobuild: true
+    # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
+    - task: DotNetCoreCLI@2
+      displayName: dotnet test (Release)
+      inputs:
+        command: test
+        arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/tests/'
+        projects: '**/*.Tests.csproj'
+        nobuild: true
 
-# Generate the report using ReportGenerator (https://github.com/danielpalme/ReportGenerator)
-# First install the tool on the machine, then run it
-- script: |
-    dotnet tool install -g dotnet-reportgenerator-globaltool
-    reportgenerator -reports:$(Build.SourcesDirectory)/tests/**/coverage*.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage -reporttypes:HtmlInline_AzurePipelines;Cobertura
-  displayName: Create Code coverage report
+    # Generate the report using ReportGenerator (https://github.com/danielpalme/ReportGenerator)
+    # First install the tool on the machine, then run it
+    - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:$(Build.SourcesDirectory)/tests/**/coverage*.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage -reporttypes:HtmlInline_AzurePipelines;Cobertura
+      displayName: Create Code coverage report
 
-# Publish the code coverage result (summary and web site)
-# The summary allows to view the coverage percentage in the summary tab
-# The web site allows to view which lines are covered directly in Azure Pipeline
-- task: PublishCodeCoverageResults@1
-  displayName: 'Publish code coverage'
-  inputs:
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
-    reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
+    # Publish the code coverage result (summary and web site)
+    # The summary allows to view the coverage percentage in the summary tab
+    # The web site allows to view which lines are covered directly in Azure Pipeline
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage'
+      inputs:
+        codeCoverageTool: Cobertura
+        summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
+        reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
 
-- task: CopyFiles@2
-  inputs:
-    name: Prepare artifact
-    SourceFolder: '$(agent.builddirectory)'
-    Contents: '**\*.*nupkg'
-    flattenFolders: true
-    TargetFolder: '$(build.artifactstagingdirectory)'
-    CleanTargetFolder: true
-    OverWrite: true
+    - task: CopyFiles@2
+      inputs:
+        name: Prepare artifact
+        SourceFolder: '$(agent.builddirectory)'
+        Contents: '**\*.*nupkg'
+        flattenFolders: true
+        TargetFolder: '$(build.artifactstagingdirectory)'
+        CleanTargetFolder: true
+        OverWrite: true
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'packages'
-    publishLocation: 'Container'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        ArtifactName: 'packages'
+        publishLocation: 'Container'
