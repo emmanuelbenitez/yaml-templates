@@ -14,7 +14,7 @@ parameters:
 
 steps:
 - bash:  | 
-    echo "##vso[build.updatebuildnumber]$(Major).$(Minor).$(Build).$(Revision)"
+    echo "##vso[build.updatebuildnumber]${{ parameters.Major }}.${{ parameters.Minor }}.${{ parameters.Build }}.$(Build.BuildId)"
   displayName: Update build number
 - task: DownloadSecureFile@1
   name: privateKey
