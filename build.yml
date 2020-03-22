@@ -5,20 +5,21 @@ parameters:
 - name: Minor
   type: number
   default: 0
-- name: Build
-  type: number
-  default: 0
-- name: Revision
-  type: number
-  default: 0
 
 jobs:
-- job: Windows
+- job: Build
   pool:
     vmImage: 'windows-latest'
+  variables:
+    VersionBuild: 0
+    VersionRevision: 0
   steps:
+    - powershell: Write-Host "##vso[task.setvariable variable=VersionBuild;]('{0:yy}{1:000}' -f [datetime]::Today, [datetime]::Today.DayOfYear)"
+      displayName: Calculate Build
+    - powershell: Write-Host "##vso[task.setvariable variable=VersionRevision;](([datetime]::Now - [datetime]::Today).TotalSeconds / 1.4)"
+      displayName: Calculate Version
     - bash:  | 
-        echo "##vso[build.updatebuildnumber]${{ parameters.Major }}.${{ parameters.Minor }}.${{ parameters.Build }}.$(Build.BuildId)"
+        echo "##vso[build.updatebuildnumber]${{ parameters.Major }}.${{ parameters.Minor }}.${{ parameters.Build }}.$(VersionBuild).$(VersionRevision)"
       displayName: Update build number
     - task: DownloadSecureFile@1
       name: privateKey
@@ -38,13 +39,13 @@ jobs:
       displayName: dotnet build (Debug)
       inputs:
         command: 'build'
-        arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=${{ parameters.Build }};Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
+        arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
     - task: DotNetCoreCLI@2
       displayName: dotnet build (Release)
       inputs:
         command: 'build'
-        arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=${{ parameters.Build }};Revision=$(Build.BuildId);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
+        arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
 
     # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
     - task: DotNetCoreCLI@2
