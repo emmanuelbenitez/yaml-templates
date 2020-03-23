@@ -38,11 +38,6 @@ jobs:
         vstsFeed: '1b04fa51-ab33-4e2a-9966-fc900bcff434'
         includeNuGetOrg: true
 
-    - task: ResharperCli@2
-      inputs:
-        solutionOrProjectPath: '*.sln'
-        failBuildLevelSelector: 'Warning'
-
     - task: DotNetCoreCLI@2
       displayName: dotnet build (Debug)
       inputs:
@@ -54,6 +49,12 @@ jobs:
       inputs:
         command: 'build'
         arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
+
+    - task: ResharperCli@2
+      displayName: ReSharper Code Analysis
+      inputs:
+        failBuildLevelSelector: 'Warning'
+        arguments: '--configuration Release'
 
     # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
     - task: DotNetCoreCLI@2
