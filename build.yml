@@ -55,6 +55,7 @@ jobs:
       inputs:
         failBuildLevelSelector: 'Warning'
         arguments: '--configuration Release'
+        resultsOutputFilePath: '$(Build.SourcesDirectory)/CodeAnalysisReports'
 
     # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
     - task: DotNetCoreCLI@2
