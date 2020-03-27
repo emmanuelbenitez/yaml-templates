@@ -1,4 +1,6 @@
 parameters:
+- name: 'Build.Target'
+  type: string
 - name: Major
   type: number
   default: 1
@@ -34,6 +36,7 @@ jobs:
       displayName: Restore
       inputs:
         command: 'restore'
+        projects: '$(Build.Target)'
         feedsToUse: 'select'
         vstsFeed: '1b04fa51-ab33-4e2a-9966-fc900bcff434'
         includeNuGetOrg: true
@@ -42,20 +45,23 @@ jobs:
       displayName: dotnet build (Debug)
       inputs:
         command: 'build'
+        projects: '$(Build.Target)'
         arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
     - task: DotNetCoreCLI@2
       displayName: dotnet build (Release)
       inputs:
         command: 'build'
+        projects: '$(Build.Target)'
         arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
 
     - task: ResharperCli@2
       displayName: ReSharper Code Analysis
       inputs:
+        solutionOrProjectPath: '$(Build.Target)'
         failBuildLevelSelector: 'Warning'
         arguments: '--configuration Release'
-        resultsOutputFilePath: '$(Build.SourcesDirectory)/CodeAnalysisReports'
+        resultsOutputFilePath: '$(Build.SourcesDirectory)/CodeAnalysisReport'
 
     # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
     - task: DotNetCoreCLI@2
