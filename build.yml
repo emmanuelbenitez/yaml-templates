@@ -34,6 +34,7 @@ jobs:
       displayName: Restore
       inputs:
         command: 'restore'
+        projects: '${{ parameters.BuildTarget }}'
         feedsToUse: 'select'
         vstsFeed: '1b04fa51-ab33-4e2a-9966-fc900bcff434'
         includeNuGetOrg: true
@@ -42,6 +43,7 @@ jobs:
       displayName: dotnet build (Debug)
       inputs:
         command: 'build'
+        projects: '${{ parameters.BuildTarget }}'
         arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
 
@@ -49,12 +51,13 @@ jobs:
       displayName: dotnet build (Release)
       inputs:
         command: 'build'
+        projects: '${{ parameters.BuildTarget }}'
         arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
 
     - task: ResharperCli@2
       displayName: ReSharper Code Analysis
       inputs:
-        solutionOrProjectPath: '$(BuildTarget)'
+        solutionOrProjectPath: '${{ parameters.BuildTarget }}'
         failBuildLevelSelector: 'Warning'
         arguments: '--configuration Release'
         resultsOutputFilePath: '$(Build.SourcesDirectory)/CodeAnalysisReport'
