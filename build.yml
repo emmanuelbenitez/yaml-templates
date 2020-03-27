@@ -23,7 +23,7 @@ jobs:
         Write-Host "##vso[task.setvariable variable=VersionRevision;]$revision"
         Write-Host 'Build='$build'|Revision='$revision
         Write-Host "##vso[build.updatebuildnumber]${{ parameters.Major }}.${{ parameters.Minor }}.$(VersionBuild).$(VersionRevision)"
-        Write-Host '$(Build.Target)'
+        Write-Host $env:Build.Target
       displayName: Calculate Build and Revision part
     - task: DownloadSecureFile@1
       name: privateKey
@@ -46,6 +46,7 @@ jobs:
         command: 'build'
         projects: '$(Build.Target)'
         arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
+
 
     - task: DotNetCoreCLI@2
       displayName: dotnet build (Release)
