@@ -52,7 +52,7 @@ jobs:
       inputs:
         command: 'build'
         projects: '${{ parameters.BuildTarget }}'
-        arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=true --no-restore'
+        arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);DelaySign=false;AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
     - task: ResharperCli@2
       displayName: ReSharper Code Analysis
@@ -88,7 +88,17 @@ jobs:
         summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
         reportDirectory: '$(Build.SourcesDirectory)/CodeCoverage'
 
+    - task: DotNetCoreCLI@2
+      displayName: dotnet pack (Release)
+      inputs:
+        command: pack
+        arguments: '--configuration Release --no-build'
+        projects: '${{ parameters.BuildTarget }}'
+        packDirectory: '$(agent.builddirectory)'
+        nobuild: true
+
     - task: CopyFiles@2
+      enabled: false
       inputs:
         name: Prepare artifact
         SourceFolder: '$(agent.builddirectory)'
