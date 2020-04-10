@@ -1,5 +1,6 @@
 stages:
 - stage: publish
+  dependsOn: build
   jobs:
   - job: publish
     steps:
