@@ -14,3 +14,4 @@ stages:
     ProjectOrSolutionPath: ${{ parameters.ProjectOrSolutionPath }}
     Major: ${{ parameters.Major }}
     Minor: ${{ parameters.Minor }}
+    BuildRelease : false
