@@ -1,6 +1,7 @@
 stages:
 - stage: publish
   dependsOn: build
+  condition: succeeded()
   jobs:
   - job: publish
     steps:
