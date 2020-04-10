@@ -28,11 +28,11 @@ stages:
           Write-Host "##vso[task.setvariable variable=VersionRevision;]$revision"
           Write-Host 'Build='$build'|Revision='$revision
           Write-Host "##vso[build.updatebuildnumber]${{ parameters.Major }}.${{ parameters.Minor }}.$build.$revision"
-        displayName: Calculate Build and Revision part
+        displayName: calculate build and revision part
 
       - task: DownloadSecureFile@1
         name: privateKey
-        displayName: GetPrivateKey
+        displayName: get private key
         inputs:
           secureFile: 'be.stateless.snk'
 
@@ -61,7 +61,7 @@ stages:
           arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
       - task: ResharperCli@2
-        displayName: ReSharper Code Analysis
+        displayName: analyze code with Resharpar
         inputs:
           solutionOrProjectPath: '${{ parameters.ProjectOrSolutionPath }}'
           failBuildLevelSelector: 'Warning'
@@ -73,13 +73,13 @@ stages:
       - script: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           reportgenerator -reports:$(Build.SourcesDirectory)/tests/**/coverage*.cobertura.xml -targetdir:$(Build.SourcesDirectory)/CodeCoverage -reporttypes:HtmlInline_AzurePipelines;Cobertura
-        displayName: Create Code coverage report
+        displayName: create code coverage report
 
       # Publish the code coverage result (summary and web site)
       # The summary allows to view the coverage percentage in the summary tab
       # The web site allows to view which lines are covered directly in Azure Pipeline
       - task: PublishCodeCoverageResults@1
-        displayName: 'Publish code coverage'
+        displayName: 'publish code coverage'
         inputs:
           codeCoverageTool: Cobertura
           summaryFileLocation: '$(Build.SourcesDirectory)/CodeCoverage/Cobertura.xml'
@@ -87,6 +87,7 @@ stages:
 
       - task: DotNetCoreCLI@2
         displayName: dotnet pack (Release)
+        condition: eq('${{ parameters.BuildRelease }}', true)
         inputs:
           command: pack
           arguments: '--configuration Release --no-build'
@@ -95,6 +96,8 @@ stages:
           nobuild: true
 
       - task: PublishBuildArtifacts@1
+        displayName: publish artifacts
+        condition: eq('${{ parameters.BuildRelease }}', true)
         inputs:
           PathtoPublish: '$(Build.ArtifactStagingDirectory)'
           ArtifactName: 'packages'
