@@ -12,5 +12,5 @@ stages:
 - template: stage-build.yml
   parameters:
     ProjectOrSolutionPath: ${{ parameters.ProjectOrSolutionPath }}
-    Version.Major: ${{ parameters.Major }}
-    Version.Minor: ${{ parameters.Minor }}
+    Major: ${{ parameters.Major }}
+    Minor: ${{ parameters.Minor }}

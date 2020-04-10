@@ -1,10 +1,10 @@
 parameters:
 - name: 'ProjectOrSolutionPath'
   type: string
-- name: Version.Major
+- name: Major
   type: number
   default: 1
-- name: Version.Minor
+- name: Minor
   type: number
   default: 0
 - name: BuildRelease
@@ -47,14 +47,14 @@ stages:
         inputs:
           command: 'build'
           projects: '${{ parameters.ProjectOrSolutionPath }}'
-          arguments: '-p:Configuration=Debug;Major=${{ parameters.Version.Major }};Minor=${{ parameters.Version.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
+          arguments: '-p:Configuration=Debug;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
       - task: DotNetCoreCLI@2
         displayName: dotnet build (Release)
         condition: eq('${{ parameters.BuildRelease }}', true)
         inputs:
           command: 'build'
           projects: '${{ parameters.ProjectOrSolutionPath }}'
-          arguments: '-p:Configuration=Release;Major=${{ parameters.Version.Major }};Minor=${{ parameters.Version.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
+          arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
       - task: ResharperCli@2
         displayName: ReSharper Code Analysis
         inputs:
