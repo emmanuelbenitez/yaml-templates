@@ -67,6 +67,15 @@ stages:
           failBuildLevelSelector: 'Warning'
           arguments: '--configuration Release'
           resultsOutputFilePath: '$(Build.SourcesDirectory)/CodeAnalysisReport'
+      
+      # Run all tests with "/p:CollectCoverage=true /p:CoverletOutputFormat=cobertura" to generate the code coverage file
+      - task: DotNetCoreCLI@2
+        displayName: dotnet test (Release)
+        inputs:
+          command: test
+          arguments: '--configuration Release /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=$(Build.SourcesDirectory)/tests/'
+          projects: '**/*.Tests.csproj'
+          nobuild: true
 
       # Generate the report using ReportGenerator (https://github.com/danielpalme/ReportGenerator)
       # First install the tool on the machine, then run it
