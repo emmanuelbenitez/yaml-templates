@@ -15,3 +15,5 @@ stages:
     Major: ${{ parameters.Major }}
     Minor: ${{ parameters.Minor }}
     BuildRelease : true
+- template: stage-publish-nuget-packages.yml
+  dependsOn: build
