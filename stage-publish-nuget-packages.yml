@@ -12,7 +12,6 @@ stages:
           action: 'create'
           target: '$(Build.SourceVersion)'
           tagSource: 'gitTag'
-          tagPattern: 'v$(Build.BuildNumber)'
           title: '$(Build.BuildNumber)'
           changeLogCompareToRelease: 'lastFullRelease'
           changeLogType: 'commitBased'
@@ -27,6 +26,6 @@ stages:
         displayName: nuget push packages
         inputs:
           command: 'push'
-          packagesToPush: '$(System.ArtifactsDirectory)/*.*nupkg'
+          packagesToPush: '$(System.ArtifactsDirectory)/packages/*.*nupkg'
           nuGetFeedType: 'internal'
           publishVstsFeed: '1b04fa51-ab33-4e2a-9966-fc900bcff434'
