@@ -101,13 +101,13 @@ stages:
           command: pack
           arguments: '--configuration Release --no-build'
           projects: '${{ parameters.ProjectOrSolutionPath }}'
-          packDirectory: '$(build.artifactstagingdirectory)'
+          packDirectory: '$(build.artifactstagingdirectory)/packages'
           nobuild: true
 
       - task: PublishBuildArtifacts@1
         displayName: publish artifacts
         condition: eq('${{ parameters.BuildRelease }}', true)
         inputs:
-          PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+          PathtoPublish: '$(Build.ArtifactStagingDirectory)/packages'
           ArtifactName: 'packages'
           publishLocation: 'Container'
