@@ -61,7 +61,7 @@ stages:
           arguments: '-p:Configuration=Release;Major=${{ parameters.Major }};Minor=${{ parameters.Minor }};Build=$(VersionBuild);Revision=$(VersionRevision);AssemblyOriginatorKeyFile=$(privateKey.secureFilePath);GeneratePackageOnBuild=false --no-restore'
 
       - task: ResharperCli@2
-        displayName: analyze code with Resharpar
+        displayName: analyze code with Resharper
         inputs:
           solutionOrProjectPath: '${{ parameters.ProjectOrSolutionPath }}'
           failBuildLevelSelector: 'Warning'
